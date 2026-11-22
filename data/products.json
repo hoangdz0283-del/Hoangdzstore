@@ -1,0 +1,652 @@
+[
+  {
+    "id": 1,
+    "name": "iPhone 16 Pro Max",
+    "brand": "Apple",
+    "category": "phone",
+    "description": "Điện thoại cao cấp Apple iPhone 16 Pro Max. Dung lượng bộ nhớ chưa được ghi trong danh mục cũ.",
+    "price": 29990000,
+    "sale_price": null,
+    "image": "assets/images/products/apple/product-1.webp",
+    "badge": "Bán chạy",
+    "stock": 10,
+    "specifications": {
+      "chip": "Apple A18 Pro",
+      "model": "iPhone 16 Pro Max",
+      "display": "Super Retina XDR",
+      "storage": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 2,
+    "name": "MacBook Pro M4",
+    "brand": "Apple",
+    "category": "laptop",
+    "description": "Laptop Apple MacBook Pro dùng chip M4. Cấu hình bộ nhớ và kích thước màn hình chưa được ghi trong danh mục cũ.",
+    "price": 42990000,
+    "sale_price": null,
+    "image": "assets/images/source/apple/macbook-pro-m4/product-2-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 10,
+    "specifications": {
+      "chip": "Apple M4",
+      "model": "MacBook Pro M4",
+      "display": "Liquid Retina XDR",
+      "memory_and_storage": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 3,
+    "name": "AirPods Pro",
+    "brand": "Apple",
+    "category": "audio",
+    "description": "Tai nghe không dây Apple AirPods Pro; thế hệ cụ thể chưa được ghi trong danh mục cũ.",
+    "price": 5490000,
+    "sale_price": null,
+    "image": "assets/images/source/apple/airpods-pro-unknown-generation/product-3-user-provided.png",
+    "badge": "Hot",
+    "stock": 10,
+    "specifications": {
+      "brand": "Apple",
+      "model": "AirPods Pro",
+      "generation": "Chưa có trong dữ liệu cũ",
+      "noise_control": "Active noise cancellation"
+    },
+    "is_active": true
+  },
+  {
+    "id": 4,
+    "name": "iPad Pro",
+    "brand": "Apple",
+    "category": "phone",
+    "description": "Máy tính bảng Apple iPad Pro. Thế hệ, kích thước màn hình và dung lượng chưa được ghi trong danh mục cũ.",
+    "price": 24990000,
+    "sale_price": null,
+    "image": "assets/images/source/apple/ipad-pro-unknown-variant/product-4-user-provided.png",
+    "badge": "Mới",
+    "stock": 10,
+    "specifications": {
+      "brand": "Apple",
+      "model": "iPad Pro",
+      "generation": "Chưa có trong dữ liệu cũ",
+      "display_size_and_storage": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 5,
+    "name": "MacBook Air M3",
+    "brand": "Apple",
+    "category": "laptop",
+    "description": "Laptop Apple MacBook Air dùng chip M3. Cấu hình bộ nhớ và kích thước màn hình chưa được ghi trong danh mục cũ.",
+    "price": 26990000,
+    "sale_price": null,
+    "image": "assets/images/products/apple/product-5.webp",
+    "badge": "Ưu đãi",
+    "stock": 10,
+    "specifications": {
+      "chip": "Apple M3",
+      "model": "MacBook Air M3",
+      "display_size": "Chưa có trong dữ liệu cũ",
+      "memory_and_storage": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 6,
+    "name": "Tai nghe Sony",
+    "brand": "Sony",
+    "category": "audio",
+    "description": "Tai nghe Sony; mã sản phẩm và thông số chi tiết chưa được ghi trong danh mục cũ.",
+    "price": 3990000,
+    "sale_price": null,
+    "image": "assets/images/source/sony/headphones-unknown-model/product-6-user-provided.png",
+    "badge": "Bán chạy",
+    "stock": 10,
+    "specifications": {
+      "brand": "Sony",
+      "model": "Chưa có trong dữ liệu cũ",
+      "connectivity_and_audio_features": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 7,
+    "name": "Apple Watch",
+    "brand": "Apple",
+    "category": "accessory",
+    "description": "Dòng đồng hồ thông minh Apple Watch. Thế hệ, kích thước và cấu hình chưa được ghi trong danh mục cũ.",
+    "price": 8990000,
+    "sale_price": null,
+    "image": "assets/images/source/apple/apple-watch-unknown-model/product-7-user-provided.png",
+    "badge": "Mới",
+    "stock": 10,
+    "specifications": {
+      "brand": "Apple",
+      "model_and_generation": "Chưa có trong dữ liệu cũ",
+      "case_size_and_connectivity": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 8,
+    "name": "Sạc không dây",
+    "brand": "Chưa xác định",
+    "category": "accessory",
+    "description": "Đế sạc không dây; thương hiệu và thông số công suất chưa được ghi trong danh mục cũ.",
+    "price": 1290000,
+    "sale_price": null,
+    "image": "assets/images/source/unknown/wireless-charger-unknown-brand-model/product-8-user-provided.png",
+    "badge": "Giá tốt",
+    "stock": 10,
+    "specifications": {
+      "brand": "Unknown",
+      "model": "Chưa có trong dữ liệu cũ",
+      "charging_standard_and_power": "Chưa có trong dữ liệu cũ"
+    },
+    "is_active": true
+  },
+  {
+    "id": 9,
+    "name": "iPhone 16 128GB",
+    "brand": "Apple",
+    "category": "phone",
+    "description": "Điện thoại Apple iPhone 16 với chip A18, camera Fusion 48MP và nút Camera Control.",
+    "price": 21990000,
+    "sale_price": 20990000,
+    "image": "assets/images/source/apple/iphone-16-128gb/product-9-user-provided.png",
+    "badge": "Mới",
+    "stock": 14,
+    "specifications": {
+      "chip": "Apple A18",
+      "camera": "48MP Fusion",
+      "display": "6.1-inch Super Retina XDR",
+      "storage": "128GB"
+    },
+    "is_active": true
+  },
+  {
+    "id": 10,
+    "name": "Mac mini M4 16GB/256GB",
+    "brand": "Apple",
+    "category": "laptop",
+    "description": "Máy tính để bàn nhỏ gọn Apple Mac mini với chip M4, bộ nhớ hợp nhất 16GB và SSD 256GB.",
+    "price": 17990000,
+    "sale_price": null,
+    "image": "assets/images/source/apple/mac-mini-m4-16gb-256gb/product-10-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 8,
+    "specifications": {
+      "chip": "Apple M4",
+      "ports": "Thunderbolt, HDMI, USB-C",
+      "memory": "16GB unified memory",
+      "storage": "256GB SSD"
+    },
+    "is_active": true
+  },
+  {
+    "id": 11,
+    "name": "Galaxy S25 Ultra 256GB",
+    "brand": "Samsung",
+    "category": "phone",
+    "description": "Điện thoại Samsung Galaxy S25 Ultra với S Pen, camera 200MP và màn hình Dynamic AMOLED 2X.",
+    "price": 33990000,
+    "sale_price": 31990000,
+    "image": "assets/images/source/samsung/galaxy-s25-ultra-256gb/product-11-user-provided.png",
+    "badge": "Bán chạy",
+    "stock": 9,
+    "specifications": {
+      "chip": "Snapdragon 8 Elite for Galaxy",
+      "camera": "200MP main",
+      "display": "6.9-inch QHD+ Dynamic AMOLED 2X",
+      "storage": "256GB"
+    },
+    "is_active": true
+  },
+  {
+    "id": 12,
+    "name": "Galaxy S25 256GB",
+    "brand": "Samsung",
+    "category": "phone",
+    "description": "Điện thoại Samsung Galaxy S25 gọn nhẹ, màn hình AMOLED 120Hz và hệ thống camera đa dụng.",
+    "price": 25990000,
+    "sale_price": null,
+    "image": "assets/images/source/samsung/galaxy-s25-256gb/product-12-user-provided.png",
+    "badge": "Mới",
+    "stock": 13,
+    "specifications": {
+      "chip": "Snapdragon 8 Elite for Galaxy",
+      "camera": "50MP main",
+      "display": "6.2-inch FHD+ Dynamic AMOLED 2X",
+      "storage": "256GB"
+    },
+    "is_active": true
+  },
+  {
+    "id": 13,
+    "name": "Galaxy A56 5G 256GB",
+    "brand": "Samsung",
+    "category": "phone",
+    "description": "Điện thoại Samsung Galaxy A56 5G với màn hình Super AMOLED lớn và pin dung lượng cao.",
+    "price": 9990000,
+    "sale_price": 8990000,
+    "image": "assets/images/source/samsung/galaxy-a56-5g-256gb/product-13-user-provided.png",
+    "badge": "Ưu đãi",
+    "stock": 20,
+    "specifications": {
+      "chip": "Exynos 1580",
+      "camera": "50MP main",
+      "battery": "5000mAh",
+      "display": "6.7-inch FHD+ Super AMOLED, 120Hz",
+      "storage": "256GB"
+    },
+    "is_active": true
+  },
+  {
+    "id": 14,
+    "name": "Galaxy Z Flip6 256GB",
+    "brand": "Samsung",
+    "category": "phone",
+    "description": "Điện thoại gập Samsung Galaxy Z Flip6 với màn hình chính AMOLED và màn hình phụ FlexWindow.",
+    "price": 23990000,
+    "sale_price": null,
+    "image": "assets/images/source/samsung/galaxy-z-flip6-256gb/product-14-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 7,
+    "specifications": {
+      "chip": "Snapdragon 8 Gen 3 for Galaxy",
+      "display": "6.7-inch Dynamic AMOLED 2X",
+      "storage": "256GB",
+      "cover_display": "3.4-inch Super AMOLED"
+    },
+    "is_active": true
+  },
+  {
+    "id": 15,
+    "name": "Galaxy Tab S10 FE 128GB",
+    "brand": "Samsung",
+    "category": "phone",
+    "description": "Máy tính bảng Samsung Galaxy Tab S10 FE kèm bút S Pen, phù hợp học tập và làm việc.",
+    "price": 11990000,
+    "sale_price": null,
+    "image": "assets/images/source/samsung/galaxy-tab-s10-fe-128gb/product-15-user-provided.png",
+    "badge": "Mới",
+    "stock": 11,
+    "specifications": {
+      "chip": "Exynos 1580",
+      "memory": "8GB RAM",
+      "display": "10.9-inch LCD, 90Hz",
+      "storage": "128GB",
+      "accessory": "S Pen"
+    },
+    "is_active": true
+  },
+  {
+    "id": 16,
+    "name": "Galaxy Buds3 Pro",
+    "brand": "Samsung",
+    "category": "audio",
+    "description": "Tai nghe không dây Samsung Galaxy Buds3 Pro với chống ồn chủ động và hộp sạc USB-C.",
+    "price": 5490000,
+    "sale_price": 4990000,
+    "image": "assets/images/source/samsung/galaxy-buds3-pro/product-16-user-provided.png",
+    "badge": "Hot",
+    "stock": 18,
+    "specifications": {
+      "audio": "Two-way speaker",
+      "codec": "Samsung Seamless Codec",
+      "noise_control": "Adaptive ANC",
+      "water_resistance": "IP57"
+    },
+    "is_active": true
+  },
+  {
+    "id": 17,
+    "name": "Galaxy Watch7 44mm",
+    "brand": "Samsung",
+    "category": "accessory",
+    "description": "Đồng hồ thông minh Samsung Galaxy Watch7 với theo dõi sức khỏe, GPS và Wear OS.",
+    "price": 7990000,
+    "sale_price": null,
+    "image": "assets/images/source/samsung/galaxy-watch7-44mm/product-17-user-provided.png",
+    "badge": "Mới",
+    "stock": 12,
+    "specifications": {
+      "chip": "Exynos W1000",
+      "display": "1.5-inch Super AMOLED",
+      "connectivity": "Bluetooth, GPS",
+      "operating_system": "Wear OS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 18,
+    "name": "Zenbook S 14 UX5406 32GB/1TB",
+    "brand": "ASUS",
+    "category": "laptop",
+    "description": "Laptop ASUS Zenbook S 14 mỏng nhẹ với màn hình OLED và cấu hình Core Ultra 7.",
+    "price": 38990000,
+    "sale_price": 36990000,
+    "image": "assets/images/source/asus/zenbook-s-14-ux5406-32gb-1tb/product-18-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 5,
+    "specifications": {
+      "memory": "32GB LPDDR5X",
+      "display": "14-inch 3K OLED, 120Hz",
+      "storage": "1TB SSD",
+      "processor": "Intel Core Ultra 7 258V"
+    },
+    "is_active": true
+  },
+  {
+    "id": 19,
+    "name": "Vivobook S 14 OLED M5406 16GB/1TB",
+    "brand": "ASUS",
+    "category": "laptop",
+    "description": "Laptop ASUS Vivobook S 14 OLED cho công việc và giải trí với màn hình OLED sắc nét.",
+    "price": 25990000,
+    "sale_price": null,
+    "image": "assets/images/products/asus/product-19.svg",
+    "badge": "Ưu đãi",
+    "stock": 10,
+    "specifications": {
+      "memory": "16GB LPDDR5X",
+      "display": "14-inch 3K OLED, 120Hz",
+      "storage": "1TB SSD",
+      "processor": "AMD Ryzen 7 8845HS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 20,
+    "name": "ROG Zephyrus G14 GA403",
+    "brand": "ASUS",
+    "category": "laptop",
+    "description": "Laptop gaming ASUS ROG Zephyrus G14 kích thước gọn, màn hình OLED và đồ họa RTX 4060.",
+    "price": 49990000,
+    "sale_price": null,
+    "image": "assets/images/source/asus/rog-zephyrus-g14-ga403/product-20-user-provided.png",
+    "badge": "Gaming",
+    "stock": 4,
+    "specifications": {
+      "memory": "32GB",
+      "display": "14-inch 3K OLED, 120Hz",
+      "storage": "1TB SSD",
+      "graphics": "NVIDIA GeForce RTX 4060",
+      "processor": "AMD Ryzen 9 8945HS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 21,
+    "name": "TUF Gaming A15 FA507 16GB/512GB",
+    "brand": "ASUS",
+    "category": "laptop",
+    "description": "Laptop gaming ASUS TUF Gaming A15 với khung máy bền bỉ, màn hình 144Hz và RTX 4060.",
+    "price": 29990000,
+    "sale_price": 27990000,
+    "image": "assets/images/source/asus/tuf-gaming-a15-fa507-16gb-512gb/product-21-user-provided.png",
+    "badge": "Bán chạy",
+    "stock": 9,
+    "specifications": {
+      "memory": "16GB DDR5",
+      "display": "15.6-inch FHD, 144Hz",
+      "storage": "512GB SSD",
+      "graphics": "NVIDIA GeForce RTX 4060",
+      "processor": "AMD Ryzen 7 8845HS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 22,
+    "name": "ROG Ally X 2024",
+    "brand": "ASUS",
+    "category": "accessory",
+    "description": "Máy chơi game cầm tay ASUS ROG Ally X chạy Windows, dùng APU AMD Ryzen Z1 Extreme.",
+    "price": 24990000,
+    "sale_price": null,
+    "image": "assets/images/source/asus/rog-ally-x-2024/product-22-user-provided.png",
+    "badge": "Gaming",
+    "stock": 6,
+    "specifications": {
+      "memory": "24GB LPDDR5X",
+      "battery": "80Wh",
+      "display": "7-inch FHD, 120Hz",
+      "storage": "1TB SSD",
+      "processor": "AMD Ryzen Z1 Extreme"
+    },
+    "is_active": true
+  },
+  {
+    "id": 23,
+    "name": "ProArt Display PA278QV",
+    "brand": "ASUS",
+    "category": "accessory",
+    "description": "Màn hình ASUS ProArt 27 inch đồ họa với màu sắc chuẩn và chân đế công thái học.",
+    "price": 7490000,
+    "sale_price": null,
+    "image": "assets/images/source/asus/proart-display-pa278qv/product-23-user-provided.png",
+    "badge": "Ưu đãi",
+    "stock": 7,
+    "specifications": {
+      "color": "100% sRGB, 100% Rec.709",
+      "ports": "DisplayPort, HDMI, USB hub",
+      "display": "27-inch IPS, 2560 x 1440",
+      "refresh_rate": "75Hz"
+    },
+    "is_active": true
+  },
+  {
+    "id": 24,
+    "name": "LG gram 14 2024 16GB/512GB",
+    "brand": "LG",
+    "category": "laptop",
+    "description": "Laptop LG gram 14 siêu nhẹ với màn hình WUXGA và nền tảng Intel Core Ultra.",
+    "price": 29990000,
+    "sale_price": null,
+    "image": "assets/images/source/lg/gram-14-2024-16gb-512gb/product-24-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 6,
+    "specifications": {
+      "memory": "16GB LPDDR5",
+      "display": "14-inch WUXGA IPS",
+      "storage": "512GB SSD",
+      "processor": "Intel Core Ultra 5 125H"
+    },
+    "is_active": true
+  },
+  {
+    "id": 25,
+    "name": "LG UltraGear 27GS75Q-B",
+    "brand": "LG",
+    "category": "accessory",
+    "description": "Màn hình gaming LG UltraGear 27 inch QHD IPS, tần số quét cao và thời gian phản hồi nhanh.",
+    "price": 8990000,
+    "sale_price": 8490000,
+    "image": "assets/images/source/lg/ultragear-27gs75q-b/product-25-user-provided.png",
+    "badge": "Gaming",
+    "stock": 8,
+    "specifications": {
+      "sync": "AMD FreeSync",
+      "display": "27-inch QHD IPS, 2560 x 1440",
+      "refresh_rate": "180Hz",
+      "response_time": "1ms GtG"
+    },
+    "is_active": true
+  },
+  {
+    "id": 26,
+    "name": "LG OLED evo C4 55 inch",
+    "brand": "LG",
+    "category": "accessory",
+    "description": "Smart TV LG OLED evo C4 55 inch với điểm ảnh tự phát sáng, độ phân giải 4K và webOS.",
+    "price": 39990000,
+    "sale_price": 36990000,
+    "image": "assets/images/source/lg/oled-evo-c4-55-inch/product-26-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 3,
+    "specifications": {
+      "display": "55-inch OLED evo, 4K UHD",
+      "processor": "alpha 9 AI Processor 4K Gen7",
+      "refresh_rate": "120Hz",
+      "operating_system": "webOS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 27,
+    "name": "LG XBOOM Go XG2",
+    "brand": "LG",
+    "category": "audio",
+    "description": "Loa Bluetooth di động LG XBOOM Go XG2 nhỏ gọn, chống nước bụi IP67.",
+    "price": 2490000,
+    "sale_price": null,
+    "image": "assets/images/source/lg/xboom-go-xg2/product-27-user-provided.png",
+    "badge": "Mới",
+    "stock": 15,
+    "specifications": {
+      "output": "5W",
+      "battery_life": "Up to 10 hours",
+      "connectivity": "Bluetooth",
+      "water_resistance": "IP67"
+    },
+    "is_active": true
+  },
+  {
+    "id": 28,
+    "name": "LG gram +view 16MR70",
+    "brand": "LG",
+    "category": "accessory",
+    "description": "Màn hình di động LG gram +view 16 inch, tỷ lệ 16:10 và kết nối USB-C.",
+    "price": 8990000,
+    "sale_price": null,
+    "image": "assets/images/source/lg/gram-view-16mr70/product-28-user-provided.png",
+    "badge": "Mới",
+    "stock": 5,
+    "specifications": {
+      "weight": "Approx. 670g",
+      "display": "16-inch IPS, 2560 x 1600",
+      "aspect_ratio": "16:10",
+      "connectivity": "USB-C"
+    },
+    "is_active": true
+  },
+  {
+    "id": 29,
+    "name": "ThinkPad X1 Carbon Gen 12 32GB/1TB",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "description": "Laptop doanh nghiệp Lenovo ThinkPad X1 Carbon Gen 12 với Intel Core Ultra và bảo mật ThinkShield.",
+    "price": 44990000,
+    "sale_price": null,
+    "image": "assets/images/source/lenovo/thinkpad-x1-carbon-gen-12-32gb-1tb/product-29-user-provided.png",
+    "badge": "Nổi bật",
+    "stock": 4,
+    "specifications": {
+      "memory": "32GB LPDDR5X",
+      "display": "14-inch WUXGA IPS",
+      "storage": "1TB SSD",
+      "processor": "Intel Core Ultra 7 155U"
+    },
+    "is_active": true
+  },
+  {
+    "id": 30,
+    "name": "Yoga Slim 7x 14Q8X9 16GB/512GB",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "description": "Laptop Lenovo Yoga Slim 7x nền tảng Snapdragon X với màn hình OLED và thiết kế mỏng nhẹ.",
+    "price": 32990000,
+    "sale_price": 30990000,
+    "image": "assets/images/source/lenovo/yoga-slim-7x-14q8x9-16gb-512gb/product-30-user-provided.png",
+    "badge": "Mới",
+    "stock": 7,
+    "specifications": {
+      "memory": "16GB LPDDR5X",
+      "display": "14.5-inch 3K OLED, 90Hz",
+      "storage": "512GB SSD",
+      "processor": "Snapdragon X Elite X1E-78-100"
+    },
+    "is_active": true
+  },
+  {
+    "id": 31,
+    "name": "LOQ 15AHP9 16GB/512GB",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "description": "Laptop gaming Lenovo LOQ 15 với AMD Ryzen 7, NVIDIA GeForce RTX 4060 và màn hình 144Hz.",
+    "price": 29990000,
+    "sale_price": 27990000,
+    "image": "assets/images/source/lenovo/loq-15ahp9-16gb-512gb/product-31-user-provided.png",
+    "badge": "Gaming",
+    "stock": 8,
+    "specifications": {
+      "memory": "16GB DDR5",
+      "display": "15.6-inch FHD, 144Hz",
+      "storage": "512GB SSD",
+      "graphics": "NVIDIA GeForce RTX 4060",
+      "processor": "AMD Ryzen 7 8845HS"
+    },
+    "is_active": true
+  },
+  {
+    "id": 32,
+    "name": "Legion Go 8APU1 16GB/512GB",
+    "brand": "Lenovo",
+    "category": "accessory",
+    "description": "Máy chơi game cầm tay Lenovo Legion Go với màn hình lớn, tay cầm tháo rời và Windows.",
+    "price": 22990000,
+    "sale_price": null,
+    "image": "assets/images/source/lenovo/legion-go-8apu1-16gb-512gb/product-32-user-provided.png",
+    "badge": "Gaming",
+    "stock": 6,
+    "specifications": {
+      "memory": "16GB LPDDR5X",
+      "display": "8.8-inch QHD+, 144Hz",
+      "storage": "512GB SSD",
+      "processor": "AMD Ryzen Z1 Extreme"
+    },
+    "is_active": true
+  },
+  {
+    "id": 33,
+    "name": "IdeaPad Slim 5 14IMH9 16GB/512GB",
+    "brand": "Lenovo",
+    "category": "laptop",
+    "description": "Laptop Lenovo IdeaPad Slim 5 14IMH9 cho công việc hằng ngày với Intel Core Ultra và màn hình OLED.",
+    "price": 24990000,
+    "sale_price": null,
+    "image": "assets/images/source/lenovo/ideapad-slim-5-14imh9-16gb-512gb/product-33-user-provided.png",
+    "badge": "Ưu đãi",
+    "stock": 9,
+    "specifications": {
+      "memory": "16GB LPDDR5X",
+      "display": "14-inch 2.8K OLED",
+      "storage": "512GB SSD",
+      "processor": "Intel Core Ultra 5 125H"
+    },
+    "is_active": true
+  },
+  {
+    "id": 34,
+    "name": "Tab P12 8GB/128GB",
+    "brand": "Lenovo",
+    "category": "phone",
+    "description": "Máy tính bảng Lenovo Tab P12 với màn hình 3K 12.7 inch và hỗ trợ bút Lenovo Tab Pen Plus.",
+    "price": 8990000,
+    "sale_price": null,
+    "image": "assets/images/source/lenovo/tab-p12-8gb-128gb/product-34-user-provided.png",
+    "badge": "Mới",
+    "stock": 12,
+    "specifications": {
+      "memory": "8GB RAM",
+      "battery": "10200mAh",
+      "display": "12.7-inch 3K LCD",
+      "storage": "128GB",
+      "processor": "MediaTek Dimensity 7050"
+    },
+    "is_active": true
+  }
+]

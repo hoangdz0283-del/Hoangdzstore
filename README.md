@@ -1,3 +1,47 @@
+## Cloudflare Pages: static product catalog
+
+The public catalog is exported from the existing MySQL `products` table, selecting
+active rows in product-ID order. The exporter only reads MySQL and writes
+`data/products.json`; it does not change the schema or database records. It exports
+public product fields only. Because the database still contains legacy remote image
+URLs, each exported `image` path is taken from the local, product-ID-based image
+manifest instead. The backend, users, and orders are never copied to the Pages site.
+
+Run these commands in PowerShell whenever product details or stock change:
+
+```powershell
+Set-Location D:\Hoangdz-STORE\backend
+.\.venv\Scripts\python.exe -m app.export_products
+.\.venv\Scripts\python.exe -m app.export_products --check
+Set-Location ..
+node scripts\build_pages.mjs
+```
+
+The export includes product ID, name, brand, category, description, price,
+sale price, local image path, badge, stock, specifications, and active status.
+`--check` validates the JSON and verifies every referenced image exists locally.
+The Pages build copies only `index.html`, `css/`, `js/`, `assets/`, and `data/` to
+`dist/`; it rejects missing image paths and environment files, and does not include
+`backend/.env`.
+
+For a local preview after building:
+
+```powershell
+python -m http.server 8000 --directory dist
+```
+
+In Cloudflare Pages, connect the repository with root directory `.`, build command
+`node scripts/build_pages.mjs`, and build output directory `dist`. For a direct
+upload, upload the contents of `dist/` only. After deployment, verify that
+`/data/products.json` returns 34 product records and that `assets/images/` files
+load. Re-export and redeploy after catalog updates; the published JSON is public,
+including its prices, stock, and specifications.
+
+Product browsing no longer calls the local backend. Login, checkout, order
+management, and chatbot remain backend-dependent and still use the existing API
+base URL; those features require a separately hosted public HTTPS backend to work
+for Cloudflare visitors while the personal computer is off.
+
 ## Chatbot AI (Phase 8)
 
 The chatbot uses the OpenAI Chat Completions API through the FastAPI backend. It is

@@ -9,7 +9,7 @@
 // ==========================================
 
 const API_BASE_URL = "http://127.0.0.1:8001";
-const API_URL = `${API_BASE_URL}/api/products`;
+const PRODUCTS_DATA_URL = new URL("data/products.json", document.baseURI).toString();
 const IMAGE_MANIFEST = window.HOANGDZ_IMAGE_MANIFEST || {};
 const DEFAULT_IMAGE_FALLBACK = IMAGE_MANIFEST.defaultFallbackPath ||
     "assets/images/placeholders/unavailable.svg";
@@ -132,8 +132,42 @@ function getApiErrorMessage(detail) {
 
 
 // ==========================================
-// 5. LAY SAN PHAM TU BACKEND
+// 5. LAY SAN PHAM TU JSON TINH
 // ==========================================
+
+function validateProductCatalog(data) {
+    if (!Array.isArray(data)) {
+        throw new Error("Dữ liệu sản phẩm không phải danh sách JSON.");
+    }
+
+    const productIds = new Set();
+    for (const product of data) {
+        if (!product || !Number.isSafeInteger(product.id) || product.id <= 0 ||
+            typeof product.name !== "string" || !product.name.trim() ||
+            typeof product.brand !== "string" ||
+            typeof product.category !== "string" ||
+            !Number.isSafeInteger(product.price) || product.price <= 0 ||
+            !Number.isSafeInteger(product.stock) || product.stock < 0 ||
+            typeof product.image !== "string" || !product.image.trim()) {
+            throw new Error("Dữ liệu sản phẩm thiếu trường bắt buộc hoặc không hợp lệ.");
+        }
+        if (productIds.has(product.id)) {
+            throw new Error(`Dữ liệu sản phẩm có ID bị trùng: ${product.id}.`);
+        }
+        productIds.add(product.id);
+
+        const imagePath = product.image.trim().replace(/\\/g, "/");
+        if (imagePath.startsWith("/") || imagePath.split("/").includes("..")) {
+            throw new Error(`Đường dẫn ảnh không an toàn cho sản phẩm #${product.id}.`);
+        }
+        const imageUrl = new URL(imagePath, document.baseURI);
+        if (imageUrl.origin !== window.location.origin) {
+            throw new Error(`Ảnh sản phẩm #${product.id} phải được lưu cùng website.`);
+        }
+    }
+
+    return data;
+}
 
 async function loadProducts() {
     try {
@@ -145,17 +179,14 @@ async function loadProducts() {
         `;
         productList.setAttribute("aria-busy", "true");
 
-        const response = await fetch(API_URL);
+        const response = await fetch(PRODUCTS_DATA_URL, { cache: "no-cache" });
 
         if (!response.ok) {
-            throw new Error("Không thể kết nối API sản phẩm");
+            throw new Error(`Không thể tải danh sách sản phẩm (HTTP ${response.status}).`);
         }
 
         const data = await response.json();
-
-        if (!Array.isArray(data)) {
-            throw new Error("Dữ liệu sản phẩm không hợp lệ");
-        }
+        validateProductCatalog(data);
 
         products = data.filter(product => product && product.is_active !== false);
 
@@ -169,7 +200,7 @@ async function loadProducts() {
         renderProducts();
         renderCart();
 
-        console.info(`Đã tải ${products.length} sản phẩm từ API.`);
+        console.info(`Đã tải ${products.length} sản phẩm từ JSON tĩnh.`);
 
     } catch (error) {
         console.error("Lỗi tải sản phẩm:", error);
@@ -177,7 +208,7 @@ async function loadProducts() {
         productList.innerHTML = `
             <div class="catalog-state catalog-error" role="alert">
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                <p>Không thể tải sản phẩm. Vui lòng kiểm tra kết nối và thử lại.</p>
+                <p>Không thể tải dữ liệu sản phẩm. Hãy kiểm tra data/products.json và thử lại.</p>
                 <button class="secondary-button retry-products" type="button">Thử tải lại</button>
             </div>
         `;
@@ -238,7 +269,7 @@ function renderProductCard(product) {
         <article class="product-card">
             <div class="product-image">
                 ${badge ? `<span class="product-badge">${escapeHTML(badge)}</span>` : ""}
-                ${renderProductImage(product.id, product.name)}
+                ${renderProductImage(product.id, product.name, "", product.image)}
             </div>
             <div class="product-info">
                 <span class="product-category">${escapeHTML(getCategoryName(product.category))}</span>
@@ -575,7 +606,7 @@ function openProductDetails(productId) {
     productDetailContent.innerHTML = `
         <div class="product-detail-content">
             <div class="product-detail-image">
-                ${renderProductImage(product.id, product.name)}
+                ${renderProductImage(product.id, product.name, "", product.image)}
             </div>
             <div class="product-detail-copy">
                 <span class="product-category">${escapeHTML(getCategoryName(product.category))}</span>
@@ -657,7 +688,7 @@ function renderCart() {
         element.className = "cart-item";
 
         element.innerHTML = `
-            ${renderProductImage(product.id, product.name)}
+            ${renderProductImage(product.id, product.name, "", product.image)}
 
             <div class="cart-item-info">
                 <h4>${escapeHTML(product.name)}</h4>
@@ -1877,10 +1908,12 @@ function getProductImageRecord(productId) {
     return records[String(Number(productId))] || null;
 }
 
-function renderProductImage(productId, productName, className = "") {
+function renderProductImage(productId, productName, className = "", productImagePath = "") {
     const numericId = Number(productId);
     const entry = getProductImageRecord(numericId);
-    const imagePath = entry ? entry.imagePath : DEFAULT_IMAGE_FALLBACK;
+    const imagePath = entry
+        ? entry.imagePath
+        : productImagePath || DEFAULT_IMAGE_FALLBACK;
     const altSuffix = entry && entry.imageType === "placeholder"
         ? " - ảnh minh họa"
         : "";
