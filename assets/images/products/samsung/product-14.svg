@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" viewBox="0 0 640 480" width="640" height="480">
+<title>Galaxy Z Flip6 256GB - ?NH MINH H?A</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#1428a018"/></linearGradient></defs>
+<rect width="640" height="480" rx="28" fill="url(#bg)"/>
+<circle cx="320" cy="188" r="154" fill="#1428a018"/>
+<g fill="none" stroke="#1428a0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><rect x="250" y="74" width="140" height="228" rx="24"/><rect x="264" y="95" width="112" height="184" rx="10" fill="#1428a018" stroke="none"/><circle cx="320" cy="288" r="5" fill="#1428a0" stroke="none"/></g>
+<text x="320" y="352" text-anchor="middle" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#1428a0">Samsung</text>
+<text x="320" y="382" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5" fill="#344054">?NH MINH H?A</text>
+<text x="320" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#475467">Galaxy Z Flip6 256GB</text>
+
+<text x="610" y="458" text-anchor="end" font-family="Arial,sans-serif" font-size="10" fill="#667085">Model / ?nh ch?a ???c x?c minh</text>
+</svg>
