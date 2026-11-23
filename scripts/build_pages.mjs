@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outputArgument = process.argv[2] || "dist";
@@ -47,6 +48,28 @@ for (const entry of sourceEntries) {
         recursive: true,
         force: true,
     });
+}
+
+const builtIndex = readFileSync(resolve(outputDirectory, "index.html"), "utf8");
+const configScriptPosition = builtIndex.indexOf('<script src="js/config.js"></script>');
+const appScriptPosition = builtIndex.indexOf('<script src="js/app.js"></script>');
+if (configScriptPosition < 0 || appScriptPosition < 0 || configScriptPosition >= appScriptPosition) {
+    throw new Error("Pages must load js/config.js before js/app.js.");
+}
+
+const browserConfig = readFileSync(resolve(outputDirectory, "js", "config.js"), "utf8");
+function apiBaseFor(hostname) {
+    const sandbox = { window: { location: { hostname } } };
+    runInNewContext(browserConfig, sandbox);
+    return sandbox.window.HOANGDZ_API_BASE_URL;
+}
+if (apiBaseFor("hoangdzstore.pages.dev") !==
+    "https://hoangdz-store-api.hoangdz0283.workers.dev") {
+    throw new Error("Public Pages must use the production Worker API URL.");
+}
+if (apiBaseFor("localhost") !== "http://127.0.0.1:8787" ||
+    apiBaseFor("127.0.0.1") !== "http://127.0.0.1:8787") {
+    throw new Error("Local Pages previews must use the local demo Worker API.");
 }
 
 function assertNoEnvironmentFiles(directory) {

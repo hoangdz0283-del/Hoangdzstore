@@ -335,6 +335,7 @@
                     <button class="admin-dashboard-tab active" type="button" data-admin-view="orders" aria-pressed="true">Đơn hàng</button>
                     <button class="admin-dashboard-tab" type="button" data-admin-view="products" aria-pressed="false">Sản phẩm & tồn kho</button>
                     <button class="admin-dashboard-tab" type="button" data-admin-view="customers" aria-pressed="false">Khách hàng</button>
+                    <button class="admin-dashboard-tab" type="button" data-admin-view="analytics" aria-pressed="false">Analytics / Thống kê</button>
                 </nav>
 
                 <div id="admin-orders-panel">
@@ -576,6 +577,56 @@
                         </div>
                     </div>
                 </div>
+
+                <div id="admin-analytics-panel" hidden>
+                    <div class="admin-panel-heading">
+                        <div>
+                            <h3>Phân tích hoạt động</h3>
+                            <p id="admin-analytics-status" role="status">Chỉ có dữ liệu ẩn danh từ người đã đồng ý phân tích.</p>
+                            <p id="admin-analytics-source" class="admin-analytics-source" role="status" hidden></p>
+                        </div>
+                        <label class="admin-analytics-range">
+                            Khoảng thời gian
+                            <select id="admin-analytics-range">
+                                <option value="24h">24 giờ gần nhất</option>
+                                <option value="7d">7 ngày</option>
+                                <option value="90d">90 ngày</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="admin-stat-grid admin-analytics-stats">
+                        <article class="admin-stat-card"><span>Lượt truy cập</span><strong id="analytics-page-views">0</strong></article>
+                        <article class="admin-stat-card"><span>Người dùng hoạt động</span><strong id="analytics-active-users">0</strong></article>
+                        <article class="admin-stat-card"><span>Lượt xem sản phẩm</span><strong id="analytics-product-views">0</strong></article>
+                        <article class="admin-stat-card"><span>Lượt tìm kiếm</span><strong id="analytics-searches">0</strong></article>
+                        <article class="admin-stat-card"><span>Thêm vào giỏ</span><strong id="analytics-cart-adds">0</strong></article>
+                        <article class="admin-stat-card"><span>Bắt đầu checkout</span><strong id="analytics-checkouts">0</strong></article>
+                        <article class="admin-stat-card"><span>Đơn hàng</span><strong id="analytics-orders">0</strong></article>
+                        <article class="admin-stat-card"><span>Tương tác chatbot</span><strong id="analytics-chatbot">0</strong></article>
+                    </div>
+                    <div class="admin-analytics-conversions">
+                        <span>Tỷ lệ xem → giỏ: <strong id="analytics-view-cart-rate">0%</strong></span>
+                        <span>Tỷ lệ giỏ → checkout: <strong id="analytics-cart-order-rate">0%</strong></span>
+                        <span>Tỷ lệ checkout → đơn: <strong id="analytics-checkout-order-rate">0%</strong></span>
+                    </div>
+                    <div class="admin-analytics-grid">
+                        <section class="admin-detail-card">
+                            <h4 id="admin-analytics-chart-title">Hoạt động theo giờ</h4>
+                            <div id="admin-analytics-chart" class="admin-analytics-chart" role="img" aria-label="Biểu đồ hoạt động"></div>
+                        </section>
+                        <section class="admin-detail-card">
+                            <h4>Sản phẩm được quan tâm</h4>
+                            <ol id="admin-analytics-products" class="admin-analytics-list"></ol>
+                        </section>
+                        <section class="admin-detail-card">
+                            <h4>Từ khóa tìm kiếm phổ biến</h4>
+                            <ol id="admin-analytics-search-terms" class="admin-analytics-list"></ol>
+                        </section>
+                    </div>
+                    <div class="admin-management-actions">
+                        <button id="admin-analytics-more" class="admin-refresh" type="button" hidden>Tải thêm dữ liệu</button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -631,6 +682,7 @@
                 <a href="#brands">Thương hiệu</a>
                 <a href="#products">Sản phẩm</a>
                 <a href="#about">Giới thiệu</a>
+                <button id="analytics-consent-open" class="footer-consent-button" type="button">Tùy chọn phân tích</button>
             </div>
             <div>
                 <h3>Liên hệ</h3>
@@ -836,6 +888,14 @@
 
     <div id="toast" class="toast"></div>
 
+    <aside id="analytics-consent-banner" class="analytics-consent-banner" aria-label="Tùy chọn phân tích" hidden>
+        <p>Cho phép HOANGDZ STORE ghi nhận số liệu sử dụng ẩn danh để cải thiện trải nghiệm? Không ghi email, số điện thoại hay nội dung trò chuyện.</p>
+        <div>
+            <button id="analytics-consent-decline" type="button">Không đồng ý</button>
+            <button id="analytics-consent-accept" type="button">Đồng ý</button>
+        </div>
+    </aside>
+
     <button id="chatbot-toggle" class="chatbot-toggle" type="button" aria-expanded="false" aria-controls="chatbot-panel">
         <i class="fa-solid fa-robot" aria-hidden="true"></i>
         Hỏi HOANGDZ
@@ -853,7 +913,7 @@
         </div>
         <form id="chatbot-form" class="chatbot-form">
             <label class="sr-only" for="chatbot-input">Tin nhắn tư vấn</label>
-            <textarea id="chatbot-input" maxlength="1500" rows="2" placeholder="Bạn đang tìm sản phẩm nào?" required disabled></textarea>
+            <textarea id="chatbot-input" maxlength="1200" rows="2" placeholder="Bạn đang tìm sản phẩm nào?" required disabled></textarea>
             <button id="chatbot-send" type="submit" disabled>Gửi</button>
         </form>
         <div class="chatbot-order-lookup">
@@ -869,6 +929,7 @@
     </section>
 
     <script src="assets/images/manifest.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

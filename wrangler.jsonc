@@ -1,0 +1,27 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "hoangdz-store-api",
+	"main": "workers/worker.ts",
+	"compatibility_date": "2026-06-01",
+	"workers_dev": true,
+	"observability": {
+		"enabled": true
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "hoangdzstore-db",
+			"database_id": "ac8b93c7-7430-4bdd-b78c-b0e2ab2d4828",
+			"migrations_dir": "workers/migrations"
+		}
+	],
+	"vars": {
+		"CORS_ORIGINS": "https://hoangdzstore.pages.dev",
+		"AI_PROVIDER": "workers-ai",
+		"AI_MODEL": "@cf/aisingapore/gemma-sea-lion-v4-27b-it",
+		"ANALYTICS_MODE": "demo"
+	}
+}

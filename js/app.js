@@ -8,8 +8,10 @@
 // 1. CAU HINH API
 // ==========================================
 
-const API_BASE_URL = "http://127.0.0.1:8001";
+const API_BASE_URL = String(window.HOANGDZ_API_BASE_URL || "").trim().replace(/\/+$/, "");
 const PRODUCTS_DATA_URL = new URL("data/products.json", document.baseURI).toString();
+const ANALYTICS_CONSENT_KEY = "hoangdz_analytics_consent";
+const ANALYTICS_ID_KEY = "hoangdz_analytics_id";
 const IMAGE_MANIFEST = window.HOANGDZ_IMAGE_MANIFEST || {};
 const DEFAULT_IMAGE_FALLBACK = IMAGE_MANIFEST.defaultFallbackPath ||
     "assets/images/placeholders/unavailable.svg";
@@ -20,6 +22,84 @@ const DEFAULT_IMAGE_FALLBACK = IMAGE_MANIFEST.defaultFallbackPath ||
 // ==========================================
 
 let products = [];
+let checkoutIdempotencyKey = null;
+
+function apiUrl(path) {
+    if (!API_BASE_URL) {
+        throw new Error("Backend Worker chưa được cấu hình. Hãy điền URL Worker trong js/config.js.");
+    }
+
+    let apiOrigin;
+    try {
+        apiOrigin = new URL(API_BASE_URL);
+    } catch {
+        throw new Error("URL Backend Worker trong js/config.js không hợp lệ.");
+    }
+    const isLocalApi = ["localhost", "127.0.0.1"].includes(apiOrigin.hostname);
+    if (apiOrigin.protocol !== "https:" && !(isLocalApi && apiOrigin.protocol === "http:")) {
+        throw new Error("Backend Worker phải sử dụng HTTPS.");
+    }
+    return `${apiOrigin.origin}${path}`;
+}
+
+function getAnalyticsId() {
+    let id = localStorage.getItem(ANALYTICS_ID_KEY);
+    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+        id = crypto.randomUUID();
+        localStorage.setItem(ANALYTICS_ID_KEY, id);
+    }
+    return id;
+}
+
+function trackAnalytics(eventType, payload = {}) {
+    if (localStorage.getItem(ANALYTICS_CONSENT_KEY) !== "accepted" || !API_BASE_URL) return;
+    try {
+        const body = {
+            event_type: eventType,
+            anonymous_id: getAnalyticsId(),
+            consent: true,
+            payload
+        };
+        const endpoint = apiUrl("/api/analytics/events");
+        fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            keepalive: true
+        }).then(response => {
+            if (!response.ok) console.warn("Không lưu được sự kiện phân tích (HTTP " + response.status + ").");
+        }).catch(() => {
+            console.warn("Không thể kết nối dịch vụ phân tích.");
+        });
+    } catch {
+        console.warn("Không thể chuẩn bị sự kiện phân tích.");
+    }
+}
+
+function initializeAnalyticsConsent() {
+    const banner = document.getElementById("analytics-consent-banner");
+    const consent = localStorage.getItem(ANALYTICS_CONSENT_KEY);
+    banner.hidden = consent === "accepted" || consent === "denied";
+    document.body.classList.toggle("analytics-consent-open", !banner.hidden);
+
+    document.getElementById("analytics-consent-accept").addEventListener("click", () => {
+        localStorage.setItem(ANALYTICS_CONSENT_KEY, "accepted");
+        banner.hidden = true;
+        document.body.classList.remove("analytics-consent-open");
+        trackAnalytics("page_view", { page: "home" });
+    });
+    document.getElementById("analytics-consent-decline").addEventListener("click", () => {
+        localStorage.setItem(ANALYTICS_CONSENT_KEY, "denied");
+        localStorage.removeItem(ANALYTICS_ID_KEY);
+        banner.hidden = true;
+        document.body.classList.remove("analytics-consent-open");
+    });
+    document.getElementById("analytics-consent-open").addEventListener("click", () => {
+        banner.hidden = false;
+        document.body.classList.add("analytics-consent-open");
+    });
+    if (consent === "accepted") trackAnalytics("page_view", { page: "home" });
+}
 
 const productList = document.getElementById("product-list");
 const searchInput = document.getElementById("search-input");
@@ -68,7 +148,14 @@ let adminCurrentView = "orders";
 let currentAdminOrder = null;
 let customerOrdersPage = 1;
 let currentCustomerOrder = null;
-let chatbotHistory = [];
+let analyticsEvents = [];
+let analyticsCursor = null;
+let analyticsOrdersTotal = 0;
+let analyticsOrdersByPeriod = {};
+let analyticsRangeStart = null;
+let analyticsRangeEnd = null;
+let analyticsOrdersTruncated = false;
+let analyticsDataMode = "production";
 
 let accessToken = localStorage.getItem("hoangdz_token");
 
@@ -169,6 +256,20 @@ function validateProductCatalog(data) {
     return data;
 }
 
+function getSafeLocalProductImage(value) {
+    if (typeof value !== "string" || !value.trim()) return "";
+    const path = value.trim().replace(/\\/g, "/");
+    if (path.startsWith("/") || /^[a-z][a-z\d+.-]*:/i.test(path) || path.split("/").includes("..")) {
+        return "";
+    }
+
+    try {
+        return new URL(path, document.baseURI).origin === window.location.origin ? path : "";
+    } catch {
+        return "";
+    }
+}
+
 async function loadProducts() {
     try {
         productList.innerHTML = `
@@ -185,8 +286,35 @@ async function loadProducts() {
             throw new Error(`Không thể tải danh sách sản phẩm (HTTP ${response.status}).`);
         }
 
-        const data = await response.json();
-        validateProductCatalog(data);
+        const staticData = await response.json();
+        validateProductCatalog(staticData);
+        let data = staticData;
+
+        if (API_BASE_URL) {
+            try {
+                const liveResponse = await fetch(apiUrl("/api/products"), { cache: "no-store" });
+                if (!liveResponse.ok) {
+                    throw new Error(`Worker trả về HTTP ${liveResponse.status}.`);
+                }
+                const liveData = await liveResponse.json();
+                if (!Array.isArray(liveData)) {
+                    throw new Error("Worker trả về danh mục không hợp lệ.");
+                }
+                const staticById = new Map(staticData.map(product => [product.id, product]));
+                data = liveData.map(product => ({
+                    ...product,
+                    image: staticById.get(Number(product.id))?.image ||
+                        getSafeLocalProductImage(product.image) ||
+                        IMAGE_MANIFEST.products?.[String(product.id)]?.imagePath ||
+                        DEFAULT_IMAGE_FALLBACK
+                }));
+                validateProductCatalog(data);
+                console.info(`Đã đồng bộ ${data.length} sản phẩm và tồn kho từ Worker.`);
+            } catch (error) {
+                console.warn("Không thể đồng bộ dữ liệu trực tiếp từ Worker; đang dùng danh mục tĩnh.", error);
+                data = staticData;
+            }
+        }
 
         products = data.filter(product => product && product.is_active !== false);
 
@@ -200,7 +328,7 @@ async function loadProducts() {
         renderProducts();
         renderCart();
 
-        console.info(`Đã tải ${products.length} sản phẩm từ JSON tĩnh.`);
+        console.info(`Đã tải ${products.length} sản phẩm.`);
 
     } catch (error) {
         console.error("Lỗi tải sản phẩm:", error);
@@ -451,6 +579,7 @@ searchInput.addEventListener("input", function () {
     searchDebounceTimer = setTimeout(() => {
         searchKeyword = this.value.trim().toLocaleLowerCase("vi");
         renderFilteredProducts();
+        if (searchKeyword) trackAnalytics("search", { term: this.value.trim().slice(0, 80) });
     }, 220);
 });
 
@@ -570,6 +699,7 @@ function addToCart(id) {
     saveCart();
     renderCart();
 
+    trackAnalytics("add_to_cart", { product_id: Number(product.id), quantity: 1 });
     showToast("Đã thêm " + product.name + " vào giỏ hàng!");
 }
 
@@ -594,6 +724,7 @@ document.addEventListener("click", event => {
 function openProductDetails(productId) {
     const product = products.find(item => Number(item.id) === productId);
     if (!product) return;
+    trackAnalytics("product_view", { product_id: productId });
 
     const specifications = product.specifications &&
         typeof product.specifications === "object" &&
@@ -926,13 +1057,15 @@ document.getElementById("checkout-form").addEventListener("submit", async event 
             submitButton.textContent = "Đang xử lý...";
         }
 
+        checkoutIdempotencyKey ||= crypto.randomUUID();
         const response = await fetch(
-            `${API_BASE_URL}/api/orders/`,
+            apiUrl("/api/orders/"),
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${accessToken}`
+                    "Authorization": `Bearer ${accessToken}`,
+                    "Idempotency-Key": checkoutIdempotencyKey
                 },
                 body: JSON.stringify(orderData)
             }
@@ -951,6 +1084,7 @@ document.getElementById("checkout-form").addEventListener("submit", async event 
         }
 
         if (!response.ok) {
+            if (response.status < 500) checkoutIdempotencyKey = null;
             console.error("Lỗi tạo đơn hàng:", result);
 
             throw new Error(
@@ -960,6 +1094,7 @@ document.getElementById("checkout-form").addEventListener("submit", async event 
 
         // Chi xoa gio hang khi Backend da luu don thanh cong
         cart = [];
+        checkoutIdempotencyKey = null;
         renderCart();
 
         event.target.reset();
@@ -968,6 +1103,7 @@ document.getElementById("checkout-form").addEventListener("submit", async event 
         showToast(
             `Đặt hàng thành công! Mã đơn hàng: #${result.order_id}`
         );
+        trackAnalytics("order_created", { item_count: orderData.items.length });
 
         console.log("DON HANG DA LUU MYSQL:", result);
 
@@ -1037,15 +1173,24 @@ async function loadChatbotStatus() {
     const statusElement = document.getElementById("chatbot-status");
     const input = document.getElementById("chatbot-input");
     const sendButton = document.getElementById("chatbot-send");
+    if (!API_BASE_URL) {
+        statusElement.textContent = "Chatbot AI chưa được cấu hình và hiện chưa khả dụng.";
+        input.disabled = true;
+        sendButton.disabled = true;
+        return;
+    }
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chatbot/status`);
+        const response = await fetch(apiUrl("/api/chatbot/status"));
         if (!response.ok) {
             throw new Error(`API trạng thái trả về HTTP ${response.status}`);
         }
         const result = await response.json();
-        statusElement.textContent = result.message;
-        input.disabled = !result.available;
-        sendButton.disabled = !result.available;
+        statusElement.textContent = result.message || "Chưa kết nối AI, đang dùng tìm kiếm và FAQ.";
+        const chatAvailable = typeof result.chat_available === "boolean"
+            ? result.chat_available
+            : result.available === true;
+        input.disabled = !chatAvailable;
+        sendButton.disabled = !chatAvailable;
     } catch (error) {
         console.error("Không thể kiểm tra trạng thái chatbot:", error);
         statusElement.textContent = "Không kết nối được chatbot. Vui lòng thử lại sau.";
@@ -1057,7 +1202,7 @@ async function loadChatbotStatus() {
 async function postChatbotRequest(path, payload) {
     const headers = { "Content-Type": "application/json" };
     if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         method: "POST",
         headers,
         body: JSON.stringify(payload)
@@ -1133,10 +1278,9 @@ document.getElementById("chatbot-form").addEventListener("submit", async event =
     sendButton.disabled = true;
     try {
         const result = await postChatbotRequest("/api/chatbot/chat", {
-            message,
-            history: chatbotHistory.slice(-8)
+            message
         });
-        chatbotHistory = [...chatbotHistory, message].slice(-8);
+        trackAnalytics("chatbot_interaction", { interaction: "message" });
         appendChatbotMessage("assistant", result.reply);
     } catch (error) {
         console.error("Lỗi gửi tin nhắn chatbot:", error);
@@ -1170,6 +1314,7 @@ document.getElementById("chatbot-order-form").addEventListener("submit", async e
     submitButton.disabled = true;
     try {
         const order = await postChatbotRequest("/api/chatbot/order-lookup", { order_id: orderId });
+        trackAnalytics("chatbot_interaction", { interaction: "order_lookup" });
         appendChatbotMessage("assistant", formatChatbotOrder(order));
     } catch (error) {
         console.error("Lỗi tra cứu đơn hàng từ chatbot:", error);
@@ -1200,7 +1345,7 @@ async function refreshCurrentUser({ notify = true } = {}) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        const response = await fetch(apiUrl("/api/auth/me"), {
             headers: { "Authorization": `Bearer ${accessToken}` }
         });
 
@@ -1221,7 +1366,7 @@ async function refreshCurrentUser({ notify = true } = {}) {
     } catch (error) {
         console.error("Không thể kiểm tra phiên đăng nhập:", error);
         if (notify) {
-            showToast(error.message || "Không thể kết nối Backend tại cổng 8001.");
+            showToast(error.message || "Không thể kết nối Backend Worker.");
         }
         return "error";
     }
@@ -1340,7 +1485,7 @@ async function customerApiRequest(path, options = {}) {
         headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         ...options,
         headers
     });
@@ -1633,7 +1778,7 @@ document.getElementById("customer-login-form").addEventListener("submit", async 
 
     try {
         const formData = new FormData(form);
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(apiUrl("/api/auth/login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -1683,7 +1828,7 @@ document.getElementById("customer-register-form").addEventListener("submit", asy
         }
 
         const email = String(formData.get("email") || "").trim();
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        const response = await fetch(apiUrl("/api/auth/register"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -2014,7 +2159,7 @@ async function checkAdminAccess() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        const response = await fetch(apiUrl("/api/auth/me"), {
             headers: {
                 "Authorization": `Bearer ${accessToken}`
             }
@@ -2057,7 +2202,7 @@ async function adminApiRequest(path, options = {}) {
         headers["Content-Type"] = "application/json";
     }
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         ...options,
         headers
     });
@@ -2283,6 +2428,292 @@ async function loadAdminCustomers() {
     }
 }
 
+function getAnalyticsBucket(timestamp, range) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Ho_Chi_Minh",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23"
+    }).formatToParts(new Date(timestamp));
+    const value = type => parts.find(part => part.type === type)?.value || "00";
+    const date = `${value("year")}-${value("month")}-${value("day")}`;
+    return range === "24h" ? `${date} ${value("hour")}:00` : date;
+}
+
+function renderAnalyticsChart(events, range, ordersByPeriod, rangeStart, rangeEnd) {
+    const container = document.getElementById("admin-analytics-chart");
+    const groups = new Map();
+    const emptyGroup = () => ({
+        views: 0,
+        users: new Set(),
+        products: 0,
+        searches: 0,
+        carts: 0,
+        checkouts: 0,
+        orders: 0,
+        chatbot: 0
+    });
+    const start = Date.parse(rangeStart);
+    const end = Date.parse(rangeEnd);
+    const step = range === "24h" ? 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+    if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+        for (let timestamp = start; timestamp <= end; timestamp += step) {
+            groups.set(getAnalyticsBucket(timestamp, range), emptyGroup());
+        }
+        groups.set(getAnalyticsBucket(end, range), groups.get(getAnalyticsBucket(end, range)) || emptyGroup());
+    }
+
+    events.forEach(event => {
+        const key = getAnalyticsBucket(event.timestamp_epoch_ms, range);
+        const item = groups.get(key) || emptyGroup();
+        item.users.add(event.anonymous_id);
+        if (event.event_type === "page_view") item.views++;
+        if (event.event_type === "product_view") item.products++;
+        if (event.event_type === "search") item.searches++;
+        if (event.event_type === "add_to_cart") item.carts++;
+        if (event.event_type === "checkout_started") item.checkouts++;
+        if (event.event_type === "order_created") item.orders++;
+        if (event.event_type === "chatbot_interaction") item.chatbot++;
+        groups.set(key, item);
+    });
+
+    Object.entries(ordersByPeriod).forEach(([period, count]) => {
+        const item = groups.get(period) || emptyGroup();
+        item.orders = Number(count);
+        groups.set(period, item);
+    });
+
+    const entries = [...groups.entries()].sort(([left], [right]) => left.localeCompare(right));
+    container.replaceChildren();
+    if (!entries.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "Không có hoạt động ghi nhận: 0.";
+        container.appendChild(empty);
+        return;
+    }
+
+    if (!entries.some(([, value]) =>
+        value.views || value.users.size || value.products || value.searches ||
+        value.carts || value.checkouts || value.orders || value.chatbot
+    )) {
+        const empty = document.createElement("p");
+        empty.textContent = "Không có hoạt động ghi nhận: 0.";
+        container.appendChild(empty);
+    }
+
+    const namespace = "http://www.w3.org/2000/svg";
+    const width = 720;
+    const height = 220;
+    const padding = { top: 16, right: 12, bottom: 34, left: 28 };
+    const plotHeight = height - padding.top - padding.bottom;
+    const plotWidth = width - padding.left - padding.right;
+    const maxValue = Math.max(1, ...entries.flatMap(([, value]) =>
+        [value.views, value.users.size, value.products, value.searches, value.carts,
+            value.checkouts, value.orders, value.chatbot]
+    ));
+    const slot = plotWidth / entries.length;
+    const series = [
+        ["views", "#2563eb", "Truy cập"],
+        ["users", "#0891b2", "Người dùng"],
+        ["products", "#7c3aed", "Xem sản phẩm"],
+        ["searches", "#4f46e5", "Tìm kiếm"],
+        ["carts", "#16a34a", "Thêm giỏ"],
+        ["checkouts", "#0f766e", "Checkout"],
+        ["orders", "#f97316", "Đơn hàng"],
+        ["chatbot", "#db2777", "Chatbot"]
+    ];
+    const gap = Math.min(1, slot / (series.length * 3));
+    const barWidth = Math.max(0.25, Math.min(7, (slot * 0.9 - gap * (series.length - 1)) / series.length));
+    const groupWidth = series.length * barWidth + (series.length - 1) * gap;
+    const svg = document.createElementNS(namespace, "svg");
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Lượt truy cập, người dùng, lượt xem sản phẩm, tìm kiếm, thêm giỏ, checkout, đơn hàng và chatbot theo thời gian");
+
+    entries.forEach(([key, values], index) => {
+        const group = document.createElementNS(namespace, "g");
+        const x = padding.left + index * slot + (slot - groupWidth) / 2;
+        const title = document.createElementNS(namespace, "title");
+        title.textContent = `${key}: ${values.views} truy cập, ${values.users.size} người hoạt động, ${values.products} lượt xem sản phẩm, ${values.searches} tìm kiếm, ${values.carts} thêm giỏ, ${values.checkouts} checkout, ${values.orders} đơn, ${values.chatbot} chatbot`;
+        group.appendChild(title);
+        series.forEach(([property, color], seriesIndex) => {
+            const value = property === "users" ? values.users.size : values[property];
+            const barHeight = value / maxValue * plotHeight;
+            const rect = document.createElementNS(namespace, "rect");
+            rect.setAttribute("x", String(x + seriesIndex * (barWidth + gap)));
+            rect.setAttribute("y", String(padding.top + plotHeight - barHeight));
+            rect.setAttribute("width", String(Math.max(0.25, barWidth)));
+            rect.setAttribute("height", String(Math.max(0, barHeight)));
+            rect.setAttribute("fill", color);
+            group.appendChild(rect);
+        });
+        if (index % Math.max(1, Math.ceil(entries.length / 8)) === 0) {
+            const label = document.createElementNS(namespace, "text");
+            label.setAttribute("x", String(x + groupWidth / 2));
+            label.setAttribute("text-anchor", "middle");
+            label.setAttribute("y", String(height - 8));
+            label.textContent = range === "24h" ? key.slice(-5) : key.slice(5);
+            svg.appendChild(label);
+        }
+        svg.appendChild(group);
+    });
+    container.appendChild(svg);
+    const legend = document.createElement("ul");
+    legend.className = "admin-analytics-legend";
+    series.forEach(([, color, label]) => {
+        const item = document.createElement("li");
+        const swatch = document.createElement("span");
+        swatch.setAttribute("aria-hidden", "true");
+        swatch.style.backgroundColor = color;
+        item.append(swatch, document.createTextNode(label));
+        legend.appendChild(item);
+    });
+    container.appendChild(legend);
+}
+
+function renderAdminAnalytics(range) {
+    const count = eventType => analyticsEvents.filter(event => event.event_type === eventType).length;
+    const pageViews = count("page_view");
+    const productViews = count("product_view");
+    const cartAdds = count("add_to_cart");
+    const checkouts = count("checkout_started");
+    const trackedOrders = count("order_created");
+    const visitors = new Set(analyticsEvents.map(event => event.anonymous_id));
+    const number = value => Number(value).toLocaleString("vi-VN");
+    document.getElementById("analytics-page-views").textContent = number(pageViews);
+    document.getElementById("analytics-active-users").textContent = number(visitors.size);
+    document.getElementById("analytics-product-views").textContent = number(productViews);
+    document.getElementById("analytics-searches").textContent = number(count("search"));
+    document.getElementById("analytics-cart-adds").textContent = number(cartAdds);
+    document.getElementById("analytics-checkouts").textContent = number(checkouts);
+    document.getElementById("analytics-orders").textContent = number(analyticsOrdersTotal);
+    document.getElementById("analytics-chatbot").textContent = number(count("chatbot_interaction"));
+    document.getElementById("analytics-view-cart-rate").textContent =
+        `${productViews ? Math.round(cartAdds / productViews * 100) : 0}%`;
+    document.getElementById("analytics-cart-order-rate").textContent =
+        `${cartAdds ? Math.round(checkouts / cartAdds * 100) : 0}%`;
+    document.getElementById("analytics-checkout-order-rate").textContent =
+        `${checkouts ? Math.round(analyticsOrdersTotal / checkouts * 100) : 0}%`;
+
+    const productCounts = new Map();
+    const searchCounts = new Map();
+    analyticsEvents.forEach(event => {
+        if (event.event_type === "product_view" && event.product_id) {
+            productCounts.set(event.product_id, (productCounts.get(event.product_id) || 0) + 1);
+        }
+        if (event.event_type === "search" && event.search_term) {
+            searchCounts.set(event.search_term, (searchCounts.get(event.search_term) || 0) + 1);
+        }
+    });
+    const productById = new Map(products.map(product => [Number(product.id), product.name]));
+    const productList = document.getElementById("admin-analytics-products");
+    const searchList = document.getElementById("admin-analytics-search-terms");
+    productList.replaceChildren();
+    searchList.replaceChildren();
+    const appendRanked = (list, rows, label) => {
+        if (!rows.length) {
+            const item = document.createElement("li");
+            item.textContent = "0 lượt";
+            list.appendChild(item);
+            return;
+        }
+        rows.slice(0, 5).forEach(([name, value]) => {
+            const item = document.createElement("li");
+            item.textContent = `${label(name)} · ${number(value)} lượt`;
+            list.appendChild(item);
+        });
+    };
+    appendRanked(
+        productList,
+        [...productCounts.entries()].sort((left, right) => right[1] - left[1]),
+        id => analyticsDataMode === "demo"
+            ? `Sản phẩm Demo ${String(Number(id)).padStart(2, "0")}`
+            : productById.get(Number(id)) || `Sản phẩm #${Number(id)}`
+    );
+    appendRanked(
+        searchList,
+        [...searchCounts.entries()].sort((left, right) => right[1] - left[1]),
+        term => term
+    );
+    document.getElementById("admin-analytics-chart-title").textContent =
+        range === "24h" ? "Hoạt động theo giờ (GMT+7)" : "Hoạt động theo ngày (GMT+7)";
+    renderAnalyticsChart(
+        analyticsEvents,
+        range,
+        analyticsOrdersByPeriod,
+        analyticsRangeStart,
+        analyticsRangeEnd
+    );
+}
+
+async function loadAdminAnalytics({ append = false } = {}) {
+    const status = document.getElementById("admin-analytics-status");
+    const range = document.getElementById("admin-analytics-range").value;
+    const moreButton = document.getElementById("admin-analytics-more");
+    if (!append) {
+        analyticsEvents = [];
+        analyticsCursor = null;
+        analyticsOrdersByPeriod = {};
+        analyticsOrdersTotal = 0;
+        analyticsRangeStart = null;
+        analyticsRangeEnd = null;
+        analyticsOrdersTruncated = false;
+        analyticsDataMode = "production";
+        moreButton.hidden = true;
+        status.textContent = "Đang tải dữ liệu phân tích…";
+        const source = document.getElementById("admin-analytics-source");
+        source.textContent = "Đang xác định nguồn dữ liệu…";
+        source.hidden = false;
+        source.dataset.mode = "loading";
+        renderAdminAnalytics(range);
+    }
+    moreButton.disabled = true;
+    try {
+        const params = new URLSearchParams({ range });
+        if (analyticsCursor) params.set("cursor", analyticsCursor);
+        const report = await adminApiRequest(`/api/admin/analytics?${params.toString()}`);
+        analyticsEvents = analyticsEvents.concat(report.events || []);
+        analyticsCursor = report.next_cursor || null;
+        analyticsOrdersTotal = Number(report.orders_total || 0);
+        analyticsOrdersByPeriod = report.orders_by_period || {};
+        analyticsRangeStart = report.range_start;
+        analyticsRangeEnd = report.range_end;
+        analyticsOrdersTruncated = Boolean(report.orders_truncated);
+        analyticsDataMode = report.data_mode || "production";
+        const source = document.getElementById("admin-analytics-source");
+        source.hidden = false;
+        source.dataset.mode = analyticsDataMode;
+        source.textContent = analyticsDataMode === "demo"
+            ? "SYNTHETIC DEMO DATA — dữ liệu giả lập, không phải dữ liệu khách hàng."
+            : analyticsDataMode === "local"
+                ? "LOCAL — dữ liệu R2 cục bộ dùng cho kiểm thử."
+                : "PRODUCTION — dữ liệu sự kiện R2 và đơn hàng D1.";
+        renderAdminAnalytics(range);
+        const statusText = analyticsCursor
+            ? `Đã đọc ${numberOfAnalyticsEvents()} sự kiện; còn dữ liệu để tải tiếp.`
+            : analyticsDataMode === "demo"
+                ? `Đã đọc ${numberOfAnalyticsEvents()} sự kiện tổng hợp và ${analyticsOrdersTotal.toLocaleString("vi-VN")} đơn hàng Demo.`
+                : analyticsEvents.length || analyticsOrdersTotal
+                ? `Đã đọc ${numberOfAnalyticsEvents()} sự kiện analytics và ${analyticsOrdersTotal.toLocaleString("vi-VN")} đơn hàng từ D1.`
+                : "Không có hoạt động ghi nhận: 0.";
+        status.textContent = analyticsOrdersTruncated
+            ? `${statusText} Biểu đồ đơn hàng bị giới hạn ở 1.000 dòng.`
+            : statusText;
+        moreButton.hidden = !analyticsCursor;
+    } catch (error) {
+        status.textContent = error.message || "Không thể tải dữ liệu phân tích.";
+        throw error;
+    } finally {
+        moreButton.disabled = false;
+    }
+}
+
+function numberOfAnalyticsEvents() {
+    return analyticsEvents.length.toLocaleString("vi-VN");
+}
+
 function setAdminView(view) {
     const views = {
         orders: {
@@ -2299,6 +2730,11 @@ function setAdminView(view) {
             panel: document.getElementById("admin-customers-panel"),
             title: "Quản lý khách hàng",
             description: "Tra cứu hồ sơ và đơn hàng; chỉ chỉnh sửa thông tin liên hệ."
+        },
+        analytics: {
+            panel: document.getElementById("admin-analytics-panel"),
+            title: "Analytics / Thống kê",
+            description: "Xem truy cập, tương tác sản phẩm, checkout và chuyển đổi theo thời gian."
         }
     };
     const selected = views[view] ? view : "orders";
@@ -2317,6 +2753,10 @@ function setAdminView(view) {
 
     if (selected === "orders") {
         refreshAdminDashboard();
+    } else if (selected === "analytics") {
+        loadAdminAnalytics().catch(error => {
+            console.error("Lỗi tải phân tích quản trị:", error);
+        });
     } else {
         const loadView = selected === "products" ? loadAdminProducts : loadAdminCustomers;
         loadView().catch(error => {
@@ -2331,6 +2771,8 @@ async function refreshCurrentAdminView() {
         await loadAdminProducts();
     } else if (adminCurrentView === "customers") {
         await loadAdminCustomers();
+    } else if (adminCurrentView === "analytics") {
+        await loadAdminAnalytics();
     } else {
         await refreshAdminDashboard();
     }
@@ -2539,7 +2981,7 @@ document.getElementById("admin-login-form").addEventListener("submit", async eve
 
     try {
         const formData = new FormData(form);
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(apiUrl("/api/auth/login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -2577,6 +3019,18 @@ document.getElementById("admin-login-form").addEventListener("submit", async eve
 
 document.querySelectorAll("[data-admin-view]").forEach(button => {
     button.addEventListener("click", () => setAdminView(button.dataset.adminView));
+});
+
+document.getElementById("admin-analytics-range").addEventListener("change", () => {
+    loadAdminAnalytics().catch(error => {
+        console.error("Lỗi tải phân tích quản trị:", error);
+    });
+});
+
+document.getElementById("admin-analytics-more").addEventListener("click", () => {
+    loadAdminAnalytics({ append: true }).catch(error => {
+        console.error("Lỗi tải thêm dữ liệu phân tích:", error);
+    });
 });
 
 document.getElementById("admin-orders-refresh").addEventListener("click", () => {
@@ -2904,6 +3358,13 @@ document.querySelectorAll(".nav-links a").forEach(link => {
 // 24. KHOI CHAY WEBSITE
 // ==========================================
 
+initializeAnalyticsConsent();
+window.addEventListener("hashchange", () => {
+    const page = ["home", "products", "orders"].includes(location.hash.slice(1))
+        ? location.hash.slice(1)
+        : "home";
+    trackAnalytics("page_view", { page });
+});
 initializeAuth();
 loadProducts();
 

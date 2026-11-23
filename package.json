@@ -1,0 +1,24 @@
+{
+  "name": "hoangdz-store-cloudflare-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:api": "wrangler dev --local",
+    "dev:api:isolated": "wrangler dev --local --config wrangler.dev.jsonc",
+    "dev:api:demo": "wrangler dev --local --config wrangler.dev.jsonc",
+    "typecheck": "tsc --noEmit",
+    "test:api": "vitest run",
+    "deploy:api": "node scripts/check_worker_deploy.mjs && wrangler deploy",
+    "d1:local:migrate": "wrangler d1 migrations apply hoangdzstore-db --local",
+    "pages:build": "node scripts/build_pages.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.9.0",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.166.0"
+  }
+}
