@@ -12,6 +12,8 @@ env/
 __pycache__/
 *.py[cod]
 *.pyo
+basinCatalog/.env
+basinCatalog/.venv/
 
 # Node dependencies
 node_modules/
